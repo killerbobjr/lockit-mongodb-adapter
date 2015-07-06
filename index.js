@@ -1,12 +1,26 @@
 
 var MongoClient = require('mongodb').MongoClient;
-var uuid = require('node-uuid');
+var uuid = require('shortid');
 var pwd = require('couch-pwd');
 var ms = require('ms');
 var moment = require('moment');
 
 
-
+function base64_to_base10(str)
+{
+	var order = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-";
+	var base = order.length;
+	var num = 0, r;
+	while (str.length)
+	{
+		r = order.indexOf(str.charAt(0));
+		str = str.substr(1);
+		num *= base;
+		num += r;
+	}
+	return num;
+}
+	
 /**
  * Adapter constructor function.
  *
@@ -74,7 +88,7 @@ Adapter.prototype.save = function(name, email, pw, done) {
   var user = {
     name: name,
     email: email,
-    signupToken: uuid.v4(),
+    signupToken: base64_to_base10(uuid.generate()).toString(),
     signupTimestamp: now,
     signupTokenExpires: future,
     failedLoginAttempts: 0
