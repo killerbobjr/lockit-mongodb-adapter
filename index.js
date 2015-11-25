@@ -17,9 +17,10 @@ var moment = require('moment');
  * @param {Object} config - Lockit configuration
  * @constructor
  */
-var Adapter = module.exports = function(config) {
+var Adapter = module.exports = function(config, next) {
 
-  if (!(this instanceof Adapter)) return new Adapter(config);
+  if (!(this instanceof Adapter))
+	  return new Adapter(config, next);
 
   this.config = config;
   this.collection = config.db.collection;
@@ -29,11 +30,16 @@ var Adapter = module.exports = function(config) {
 
   // create connection as soon as module is required and share global db object
   var that = this;
-  MongoClient.connect(url, function(err, database) {
-    if (err) throw err;
-    that.db = database;
+  MongoClient.connect(url, function(err, database)
+  {
+    if (err)
+		throw err;
+	else
+	{
+		that.db = database;
+		next(null, database);
+	}
   });
-
 };
 
 
