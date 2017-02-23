@@ -90,7 +90,17 @@ Adapter.prototype.save = function(name, email, pw, done) {
     if (err) return done(err);
     user.salt = salt;
     user.derived_key = hash;
-    that.db.collection(that.collection).save(user, done);
+    that.db.collection(that.collection).save(user, function(err)
+		{
+			if(err)
+			{
+				done(err);
+			}
+			else
+			{
+				that.find('signupToken', user.signupToken, done);
+			}
+		});
   });
 };
 
