@@ -22,7 +22,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "couch-pwd": "0.0.1",
+    "couch-pwd": "git://github.com/zemirco/couch-pwd.git",
     "moment": "^2.18.1",
     "mongodb": "^2.2.25",
     "ms": "~1.0.0",
