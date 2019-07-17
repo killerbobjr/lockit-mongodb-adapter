@@ -129,9 +129,10 @@ Adapter.prototype.save = function(name, email, pw, done) {
  * @param {String} match - Property to find user by. `'name'`, `'email'` or `'signupToken'`
  * @param {String} query - Corresponding value to `match`
  * @param {Function} done - Callback function `function(err, user){}`
+ * @param {Object} basequery - query base object -- used to create a more extensive starting query
  */
-Adapter.prototype.find = function(match, query, done) {
-  var qry = {};
+Adapter.prototype.find = function(match, query, done, basequery) {
+  var qry = basequery || {};
   qry[match] = query;
   this.db.collection(this.collection).findOne(qry, done);
 };
