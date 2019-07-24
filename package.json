@@ -23,15 +23,15 @@
   "license": "MIT",
   "dependencies": {
     "couch-pwd": "git://github.com/zemirco/couch-pwd.git",
-    "moment": "^2.18.1",
-    "mongodb": "^2.2.25",
-    "ms": "~1.0.0",
+    "moment": "^2.24.0",
+    "mongodb": "^3.2.7",
+    "ms": "~2.1.2",
     "shortid": "git://github.com/killerbobjr/shortid.git"
   },
   "devDependencies": {
-    "should": "^11.2.1",
-    "grunt-mocha-test": "^0.13.2",
-    "grunt": "^1.0.1",
-    "grunt-contrib-jshint": "^1.1.0"
+    "should": "^13.2.3",
+    "grunt-mocha-test": "^0.13.3",
+    "grunt": "^1.0.4",
+    "grunt-contrib-jshint": "^2.1.0"
   }
 }
