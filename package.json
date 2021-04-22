@@ -1,7 +1,7 @@
 {
   "name": "lockit-mongodb-adapter",
   "version": "0.4.2",
-  "description": "MongoDB adapter for lockit",
+  "description": "MongoDB adapter for lockit, legacy version",
   "main": "index.js",
   "scripts": {
     "test": "grunt"
