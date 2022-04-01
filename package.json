@@ -22,11 +22,11 @@
   },
   "license": "MIT",
   "dependencies": {
-    "couch-pwd": "git://github.com/zemirco/couch-pwd.git",
+    "couch-pwd": "https://github.com/zemirco/couch-pwd.git",
     "moment": "^2.24.0",
     "mongodb": "^2.2.36",
     "ms": "~2.1.2",
-    "shortid": "git://github.com/killerbobjr/shortid.git"
+    "shortid": "https://github.com/killerbobjr/shortid.git"
   },
   "devDependencies": {
     "should": "^13.2.3",
