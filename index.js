@@ -131,7 +131,7 @@ Adapter.prototype.save = function(name, email, pw, done) {
  * @param {Function} done - Callback function `function(err, user){}`
  * @param {Object} basequery - query base object -- used to create a more extensive starting query
  */
-Adapter.prototype.find = function(match, query, done, basequery) {
+Adapter.prototype.find = function(match, query, basequery, done) {
   var qry = basequery || {};
   qry[match] = query;
   this.db.collection(this.collection).findOne(qry, done);
