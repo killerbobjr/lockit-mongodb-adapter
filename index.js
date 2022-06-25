@@ -98,7 +98,7 @@ Adapter.prototype.save = function(name, email, pw, done) {
 			}
 			else
 			{
-				that.find('signupToken', user.signupToken, done);
+				that.find('signupToken', user.signupToken, undefined, done);
 			}
 		});
   });
