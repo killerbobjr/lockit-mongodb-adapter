@@ -24,7 +24,7 @@
   "dependencies": {
     "couch-pwd": "https://github.com/zemirco/couch-pwd.git",
     "moment": "^2.24.0",
-    "mongodb": "^2.2.36",
+    "mongodb": "^5.4.0",
     "ms": "~2.1.2",
     "shortid": "https://github.com/killerbobjr/shortid.git"
   },
