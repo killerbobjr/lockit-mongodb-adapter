@@ -1,4 +1,3 @@
-
 var MongoClient = require('mongodb').MongoClient;
 var uuid = require('shortid');
 var pwd = require('couch-pwd');
@@ -17,29 +16,38 @@ var moment = require('moment');
  * @param {Object} config - Lockit configuration
  * @constructor
  */
-var Adapter = module.exports = function(config, next) {
-
-  if (!(this instanceof Adapter))
-	  return new Adapter(config, next);
-
-  this.config = config;
-  this.collection = config.db.collection;
-
-  // create connection string
-  var url = config.db.url + config.db.name;
-
-  // create connection as soon as module is required and share global db object
-  var that = this;
-  MongoClient.connect(url, function(err, database)
-  {
-    if (err)
-		throw err;
-	else
+var Adapter = module.exports = function(config, next)
+{
+	if(!(this instanceof Adapter))
 	{
-		that.db = database;
-		next(null, database);
+		return new Adapter(config, next);
 	}
-  });
+
+	this.config = config;
+	this.collection = config.db.collection;
+
+	// create connection string
+	var url = config.db.url + config.db.name;
+
+	// create connection as soon as module is required and share global db object
+	var that = this;
+	const client = new MongoClient(url, { useNewUrlParser: true, useUnifiedTopology: true });
+
+	client.on('open', function(evt)
+		{
+			if(that.config.db.name.indexOf('?') === -1)
+			{
+				that.db = client.db(that.config.db.name);
+			}
+			else
+			{
+				that.db = client.db(that.config.db.name.slice(0, that.config.db.name.indexOf('?')));
+			}
+			next(null, that.db);
+		});
+
+	client.connect(url)
+		.catch(next);
 };
 
 
@@ -69,39 +77,40 @@ var Adapter = module.exports = function(config, next) {
  * @param {String} pw - Plain text user password
  * @param {Function} done - Callback function `function(err, user){}`
  */
-Adapter.prototype.save = function(name, email, pw, done) {
-  var that = this;
+Adapter.prototype.save = function(name, email, pw, done)
+{
+	var that = this;
+	var now = moment().toDate();
+	var timespan = ms(that.config.signup.tokenExpiration);
+	var future = moment().add(timespan, 'ms').toDate();
+	var user = {
+		name: name,
+		email: email,
+		signupToken: uuid.generate(),
+		signupTimestamp: now,
+		signupTokenExpires: future,
+		failedLoginAttempts: 0
+	};
 
-  var now = moment().toDate();
-  var timespan = ms(that.config.signup.tokenExpiration);
-  var future = moment().add(timespan, 'ms').toDate();
-
-  var user = {
-    name: name,
-    email: email,
-    signupToken: uuid.generate(),
-    signupTimestamp: now,
-    signupTokenExpires: future,
-    failedLoginAttempts: 0
-  };
-
-  // create salt and hash
-  pwd.hash(pw, function(err, salt, hash) {
-    if (err) return done(err);
-    user.salt = salt;
-    user.derived_key = hash;
-    that.db.collection(that.collection).save(user, function(err)
+	// create salt and hash
+	pwd.hash(pw, function(err, salt, hash)
 		{
 			if(err)
 			{
-				done(err);
+				return done(err);
 			}
 			else
 			{
-				that.find('signupToken', user.signupToken, undefined, done);
+				user.salt = salt;
+				user.derived_key = hash;
+				that.db.collection(that.collection).insertOne(user)
+					.catch(done)
+					.then(()=>
+						{
+							that.find('signupToken', user.signupToken, undefined, done);
+						});
 			}
 		});
-  });
 };
 
 
@@ -131,10 +140,16 @@ Adapter.prototype.save = function(name, email, pw, done) {
  * @param {Function} done - Callback function `function(err, user){}`
  * @param {Object} basequery - query base object -- used to create a more extensive starting query
  */
-Adapter.prototype.find = function(match, query, basequery, done) {
-  var qry = basequery || {};
-  qry[match] = query;
-  this.db.collection(this.collection).findOne(qry, done);
+Adapter.prototype.find = function(match, query, basequery, done)
+{
+	var qry = basequery || {};
+	qry[match] = query;
+	this.db.collection(this.collection).findOne(qry)
+		.catch(done)
+		.then((result)=>
+			{
+				done(undefined, result);
+			});
 };
 
 
@@ -161,14 +176,15 @@ Adapter.prototype.find = function(match, query, basequery, done) {
  * @param {Object} user - Existing user from db
  * @param {Function} done - Callback function `function(err, user){}`
  */
-Adapter.prototype.update = function(user, done) {
-  var that = this;
-  // update user in db
-  that.db.collection(that.collection).save(user, function(err, res) {
-    if (err) return done(err);
-    // res is not the updated user object! -> find manually
-    that.db.collection(that.collection).findOne({_id: user._id}, done);
-  });
+Adapter.prototype.update = function(user, done)
+{
+	var that = this;
+	that.db.collection(that.collection).updateOne({ _id: user._id }, { $set: user })
+		.catch(done)
+		.then((result)=>
+			{
+				done(undefined, user);
+			});
 };
 
 
@@ -186,10 +202,19 @@ Adapter.prototype.update = function(user, done) {
  * @param {String} name - User name
  * @param {Function} done - Callback function `function(err, res){}`
  */
-Adapter.prototype.remove = function(name, done) {
-  this.db.collection(this.collection).remove({name: name}, function(err, numberOfRemovedDocs) {
-    if (err) return done(err);
-    if (numberOfRemovedDocs === 0) return done(new Error('lockit - Cannot find user "' + name + '"'));
-    done(null, true);
-  });
+Adapter.prototype.remove = function(name, done)
+{
+	this.db.collection(this.collection).deleteOne({ name: name })
+		.catch(done)
+		.then((numberOfRemovedDocs)=>
+			{
+				if(numberOfRemovedDocs === 0)
+				{
+					done(new Error('lockit - Cannot find user "' + name + '"'));
+				}
+				else
+				{
+					done(null, true);
+				}
+			});
 };
