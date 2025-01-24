@@ -27,7 +27,7 @@ var Adapter = module.exports = function(config, next)
 	this.collection = config.db.collection;
 
 	// create connection string
-	var url = config.db.url + config.db.name;
+	var url = config.db.url + config.db.name + (config.db.params?config.db.params:'');
 
 	// create connection as soon as module is required and share global db object
 	var that = this;
