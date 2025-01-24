@@ -179,7 +179,7 @@ Adapter.prototype.find = function(match, query, basequery, done)
 Adapter.prototype.update = function(user, done)
 {
 	var that = this;
-	that.db.collection(that.collection).updateOne({ _id: user._id }, { $set: user })
+	that.db.collection(that.collection).findOneAndUpdate({ _id: user._id }, { $set: user })
 		.catch(done)
 		.then((result)=>
 			{
